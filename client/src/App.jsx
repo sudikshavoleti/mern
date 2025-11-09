@@ -8,7 +8,7 @@ function App() {
   const [deletingId, setDeletingId] = useState(null);
 
   // Put your backend URL here (use localhost while testing)
-  const API_URL = "http://localhost:3000"; // ← change to your Render URL when deployed
+  const API_BASE = "https://mern-m28a.onrender.com"; // ← change to your Render URL when deployed
 
   // fetch all todos
   const fetchTodos = async () => {

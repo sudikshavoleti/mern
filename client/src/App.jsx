@@ -6,9 +6,12 @@ export default function App() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
+  // ✅ Use Render backend URL instead of localhost
+  const API_URL = "https://mern-m28a.onrender.com"; // <-- your deployed backend
+
   useEffect(() => {
     axios
-      .get("http://localhost:3000/todos")
+      .get(`${API_URL}/todos`)
       .then((res) => setTodos(res.data))
       .catch((err) => console.error("Error fetching todos:", err));
   }, []);
@@ -20,7 +23,7 @@ export default function App() {
     }
 
     try {
-      const res = await axios.post("http://localhost:3000/todos", {
+      const res = await axios.post(`${API_URL}/todos`, {
         title,
         description,
       });
@@ -35,7 +38,7 @@ export default function App() {
 
   const deleteTodo = async (id) => {
     try {
-      await axios.delete(`http://localhost:3000/todos/${id}`);
+      await axios.delete(`${API_URL}/todos/${id}`);
       setTodos(todos.filter((todo) => todo._id !== id));
     } catch (error) {
       console.error("Error deleting todo:", error);
@@ -72,7 +75,7 @@ export default function App() {
             marginBottom: "25px",
           }}
         >
-           To-Do Planner 
+          To-Do Planner
         </h1>
 
         <div
@@ -126,8 +129,6 @@ export default function App() {
               fontWeight: "bold",
               transition: "0.3s",
             }}
-            onMouseOver={(e) => (e.target.style.opacity = "0.9")}
-            onMouseOut={(e) => (e.target.style.opacity = "1")}
           >
             ➕ Add Task
           </button>
@@ -158,7 +159,6 @@ export default function App() {
                   justifyContent: "space-between",
                   alignItems: "center",
                   boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
-                  transition: "all 0.2s ease",
                 }}
               >
                 <div>

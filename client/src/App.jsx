@@ -4,41 +4,95 @@ function App() {
   const [todos, setTodos] = useState([]);
   const [newTitle, setNewTitle] = useState("");
   const [newDescription, setNewDescription] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
-  const API_URL = "https://mern-m28a.onrender.com";
+  // Put your backend URL here (use localhost while testing)
+  const API_URL = "http://localhost:3000"; // ← change to your Render URL when deployed
+
+  // fetch all todos
+  const fetchTodos = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/todos`);
+      if (!res.ok) throw new Error("Failed to fetch todos");
+      const data = await res.json();
+      setTodos(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("fetchTodos error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    fetch(`${API_URL}/todos`)
-      .then((res) => res.json())
-      .then((data) => setTodos(data))
-      .catch((err) => console.error("Error fetching todos:", err));
+    fetchTodos();
+    // eslint-disable-next-line
   }, []);
 
-  const handleAdd = () => {
-    if (!newTitle || !newDescription) {
-      alert("Please fill in all fields");
+  // add todo
+  const handleAdd = async () => {
+    if (!newTitle.trim() && !newDescription.trim()) {
+      alert("Please enter a title and description");
       return;
     }
 
-    fetch(`${API_URL}/todos`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: newTitle, description: newDescription }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setTodos([...todos, data]);
-        setNewTitle("");
-        setNewDescription("");
-      })
-      .catch((err) => console.error("Error adding todo:", err));
+    try {
+      const payload = { title: newTitle.trim(), description: newDescription.trim() };
+      const res = await fetch(`${API_URL}/todos`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error("Add failed: " + text);
+      }
+
+      const created = await res.json();
+      // Add new todo to state (keep order)
+      setTodos((prev) => [...prev, created]);
+      setNewTitle("");
+      setNewDescription("");
+    } catch (err) {
+      console.error("handleAdd error:", err);
+      alert("Could not add todo. Check console.");
+    }
   };
 
-  const handleDelete = (id) => {
-  fetch(`${API_URL}/todos/${id}`, { method: "DELETE" })
-    .then(() => setTodos(todos.filter((todo) => todo._id !== id)))
-    .catch((err) => console.error("Error deleting todo:", err));
-};
+  // delete ONE todo by id (defensive about id field naming)
+  const handleDelete = async (id) => {
+    if (!id) {
+      console.warn("No id passed to handleDelete");
+      return;
+    }
+
+    // Confirm (optional)
+    // if (!window.confirm("Delete this todo?")) return;
+
+    try {
+      setDeletingId(id);
+      const res = await fetch(`${API_URL}/todos/${id}`, { method: "DELETE" });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error("Delete failed: " + text);
+      }
+
+      // If backend returns the deleted doc or message, we ignore it — just update state.
+      setTodos((prev) => prev.filter((t) => {
+        const todoId = t._id ?? t.id ?? null;
+        return todoId !== id;
+      }));
+
+    } catch (err) {
+      console.error("handleDelete error:", err);
+      alert("Could not delete todo. Check console.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <div style={styles.page}>
@@ -65,27 +119,43 @@ function App() {
           </button>
         </div>
 
-        <ul style={styles.list}>
-          {todos.map((todo) => (
-            <li key={todo._id} style={styles.todoItem}>
-              <div>
-                <strong>{todo.title}</strong>
-                <div style={styles.desc}>{todo.description}</div>
-              </div>
-              <button
-                onClick={() => handleDelete(todo._id)}
-                style={styles.deleteButton}
-              >
-                ✖
-              </button>
-            </li>
-          ))}
-        </ul>
+        {loading ? (
+          <div style={{ textAlign: "center", color: "#6a1b9a" }}>Loading...</div>
+        ) : todos.length === 0 ? (
+          <div style={{ textAlign: "center", color: "#6a1b9a" }}>No tasks yet.</div>
+        ) : (
+          <ul style={styles.list}>
+            {todos.map((todo) => {
+              const todoId = todo._id ?? todo.id ?? null;
+              return (
+                <li key={todoId || Math.random()} style={styles.todoItem}>
+                  <div>
+                    <strong>{todo.title}</strong>
+                    <div style={styles.desc}>{todo.description}</div>
+                  </div>
+
+                  <button
+                    onClick={() => handleDelete(todoId)}
+                    style={{
+                      ...styles.deleteButton,
+                      opacity: deletingId === todoId ? 0.6 : 1,
+                      pointerEvents: deletingId === todoId ? "none" : "auto",
+                    }}
+                    title="Delete"
+                  >
+                    {deletingId === todoId ? "Deleting..." : "✖"}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
     </div>
   );
 }
 
+/* Styles (keeps your purple/pink theme) */
 const styles = {
   page: {
     background: "linear-gradient(135deg, #f3e5f5, #e1bee7, #ce93d8)",
@@ -97,23 +167,23 @@ const styles = {
   },
   container: {
     width: "90%",
-    maxWidth: "500px",
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    maxWidth: "560px",
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
     border: "2px solid #b39ddb",
     borderRadius: "12px",
     boxShadow: "0 8px 25px rgba(100, 0, 150, 0.2)",
-    padding: "25px",
+    padding: "22px",
   },
   title: {
     textAlign: "center",
     color: "#6a1b9a",
-    marginBottom: "20px",
+    marginBottom: "16px",
   },
   form: {
     display: "flex",
     flexDirection: "column",
     gap: "10px",
-    marginBottom: "20px",
+    marginBottom: "18px",
   },
   input: {
     padding: "10px",
@@ -131,7 +201,6 @@ const styles = {
     borderRadius: "8px",
     cursor: "pointer",
     fontWeight: "bold",
-    transition: "all 0.3s ease",
   },
   list: {
     listStyle: "none",
@@ -140,17 +209,17 @@ const styles = {
   todoItem: {
     background: "#ede7f6",
     border: "1px solid #ce93d8",
-    padding: "10px 15px",
+    padding: "10px 14px",
     borderRadius: "10px",
     marginBottom: "10px",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    transition: "all 0.2s ease",
   },
   desc: {
     fontSize: "0.9rem",
     color: "#6a1b9a",
+    marginTop: 4,
   },
   deleteButton: {
     background: "#f48fb1",
@@ -159,7 +228,6 @@ const styles = {
     padding: "6px 10px",
     borderRadius: "6px",
     cursor: "pointer",
-    transition: "all 0.3s ease",
   },
 };
 

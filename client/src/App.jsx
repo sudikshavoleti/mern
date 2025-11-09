@@ -2,161 +2,142 @@ import React, { useState, useEffect } from "react";
 
 function App() {
   const [todos, setTodos] = useState([]);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [newTitle, setNewTitle] = useState("");
+  const [newDescription, setNewDescription] = useState("");
 
+  // ✅ Replace localhost with your Render backend URL
+  const API_URL = "https://mern-m28a.onrender.com";
+
+  // Fetch all todos from backend
   useEffect(() => {
-    fetch("http://localhost:3000/todos")
+    fetch(`${API_URL}/todos`)
       .then(res => res.json())
       .then(data => setTodos(data))
-      .catch(err => console.error("Error loading todos:", err));
+      .catch(err => console.error("Error fetching todos:", err));
   }, []);
 
+  // Add new todo
   const handleAdd = () => {
-    if (!title || !description) {
-      alert("Please fill in both fields");
+    if (!newTitle || !newDescription) {
+      alert("Please fill in all fields");
       return;
     }
 
-    fetch("http://localhost:3000/todos", {
+    fetch(`${API_URL}/todos`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, description }),
+      body: JSON.stringify({ title: newTitle, description: newDescription })
     })
       .then(res => res.json())
-      .then(newTodo => {
-        setTodos([...todos, newTodo]);
-        setTitle("");
-        setDescription("");
+      .then(data => {
+        setTodos([...todos, data]);
+        setNewTitle("");
+        setNewDescription("");
       })
       .catch(err => console.error("Error adding todo:", err));
   };
 
+  // Delete a todo
   const handleDelete = (id) => {
-    fetch(`http://localhost:3000/todos/${id}`, { method: "DELETE" })
-      .then(() => setTodos(todos.filter(todo => todo.id !== id)))
+    fetch(`${API_URL}/todos/${id}`, { method: "DELETE" })
+      .then(() => setTodos(todos.filter(todo => todo._id !== id)))
       .catch(err => console.error("Error deleting todo:", err));
   };
 
   return (
-    <div
-      style={{
-        fontFamily: "Poppins, sans-serif",
-        background: "linear-gradient(135deg, #89f7fe, #66a6ff)",
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "2rem",
-      }}
-    >
-      <div
-        style={{
-          background: "white",
-          borderRadius: "20px",
-          padding: "2rem",
-          width: "100%",
-          maxWidth: "500px",
-          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
-        }}
-      >
-        <h1
-          style={{
-            textAlign: "center",
-            marginBottom: "1.5rem",
-            color: "#333",
-            fontWeight: "600",
-          }}
-        >
-          ✨ My Todo App
-        </h1>
+    <div style={styles.container}>
+      <h1 style={styles.title}>📝 To-Do App</h1>
 
+      <div style={styles.form}>
         <input
+          type="text"
           placeholder="Title"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          style={{
-            display: "block",
-            width: "100%",
-            padding: "10px 14px",
-            marginBottom: "10px",
-            border: "2px solid #ddd",
-            borderRadius: "10px",
-            fontSize: "15px",
-          }}
+          value={newTitle}
+          onChange={(e) => setNewTitle(e.target.value)}
+          style={styles.input}
         />
-
         <input
+          type="text"
           placeholder="Description"
-          value={description}
-          onChange={e => setDescription(e.target.value)}
-          style={{
-            display: "block",
-            width: "100%",
-            padding: "10px 14px",
-            marginBottom: "10px",
-            border: "2px solid #ddd",
-            borderRadius: "10px",
-            fontSize: "15px",
-          }}
+          value={newDescription}
+          onChange={(e) => setNewDescription(e.target.value)}
+          style={styles.input}
         />
-
-        <button
-          onClick={handleAdd}
-          style={{
-            width: "100%",
-            background: "linear-gradient(135deg, #667eea, #764ba2)",
-            color: "white",
-            border: "none",
-            borderRadius: "10px",
-            padding: "12px",
-            fontSize: "16px",
-            cursor: "pointer",
-            transition: "0.3s",
-          }}
-          onMouseOver={e => (e.target.style.opacity = "0.9")}
-          onMouseOut={e => (e.target.style.opacity = "1")}
-        >
+        <button onClick={handleAdd} style={styles.addButton}>
           ➕ Add Task
         </button>
-
-        <ul style={{ marginTop: "20px", listStyle: "none", padding: 0 }}>
-          {todos.map(todo => (
-            <li
-              key={todo.id}
-              style={{
-                background: "#f9f9f9",
-                borderRadius: "10px",
-                padding: "12px",
-                marginBottom: "10px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-              }}
-            >
-              <div>
-                <strong style={{ color: "#333" }}>{todo.title}</strong>
-                <p style={{ margin: "4px 0", color: "#555" }}>{todo.description}</p>
-              </div>
-              <button
-                onClick={() => handleDelete(todo.id)}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: "#ff5252",
-                  fontSize: "20px",
-                  cursor: "pointer",
-                }}
-              >
-                ❌
-              </button>
-            </li>
-          ))}
-        </ul>
       </div>
+
+      <ul style={styles.list}>
+        {todos.map((todo) => (
+          <li key={todo._id} style={styles.todoItem}>
+            <div>
+              <strong>{todo.title}</strong> - {todo.description}
+            </div>
+            <button onClick={() => handleDelete(todo._id)} style={styles.deleteButton}>
+              ❌
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
+
+const styles = {
+  container: {
+    maxWidth: "600px",
+    margin: "50px auto",
+    background: "#fdfdfd",
+    padding: "20px",
+    borderRadius: "12px",
+    boxShadow: "0 0 10px rgba(0,0,0,0.1)"
+  },
+  title: {
+    textAlign: "center",
+    marginBottom: "20px",
+    color: "#333"
+  },
+  form: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+    marginBottom: "20px"
+  },
+  input: {
+    padding: "10px",
+    borderRadius: "6px",
+    border: "1px solid #ccc"
+  },
+  addButton: {
+    background: "#28a745",
+    color: "#fff",
+    border: "none",
+    padding: "10px",
+    borderRadius: "6px",
+    cursor: "pointer"
+  },
+  list: {
+    listStyle: "none",
+    padding: 0
+  },
+  todoItem: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "10px",
+    marginBottom: "8px",
+    background: "#f9f9f9",
+    borderRadius: "6px"
+  },
+  deleteButton: {
+    background: "#dc3545",
+    color: "#fff",
+    border: "none",
+    padding: "5px 10px",
+    borderRadius: "6px",
+    cursor: "pointer"
+  }
+};
 
 export default App;

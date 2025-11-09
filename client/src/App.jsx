@@ -35,10 +35,10 @@ function App() {
   };
 
   const handleDelete = (id) => {
-    fetch(`${API_URL}/todos/${id}`, { method: "DELETE" })
-      .then(() => setTodos(todos.filter((todo) => todo._id !== id)))
-      .catch((err) => console.error("Error deleting todo:", err));
-  };
+  fetch(`${API_URL}/todos/${id}`, { method: "DELETE" })
+    .then(() => setTodos(todos.filter((todo) => todo._id !== id)))
+    .catch((err) => console.error("Error deleting todo:", err));
+};
 
   return (
     <div style={styles.page}>

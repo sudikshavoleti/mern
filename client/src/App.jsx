@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
+const API_URL = "https://mern-todo-backend.onrender.com/todos"; 
+// ⬆️ Replace this with your real Render backend URL
+
 export default function App() {
   const [todos, setTodos] = useState([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
-  // ✅ Use Render backend URL instead of localhost
-  const API_URL = "https://mern-m28a.onrender.com"; // <-- your deployed backend
-
   useEffect(() => {
     axios
-      .get(`${API_URL}/todos`)
+      .get(API_URL)
       .then((res) => setTodos(res.data))
       .catch((err) => console.error("Error fetching todos:", err));
   }, []);
@@ -21,12 +21,8 @@ export default function App() {
       alert("Please enter both title and description");
       return;
     }
-
     try {
-      const res = await axios.post(`${API_URL}/todos`, {
-        title,
-        description,
-      });
+      const res = await axios.post(API_URL, { title, description });
       setTodos([...todos, res.data]);
       setTitle("");
       setDescription("");
@@ -38,8 +34,8 @@ export default function App() {
 
   const deleteTodo = async (id) => {
     try {
-      await axios.delete(`${API_URL}/todos/${id}`);
-      setTodos(todos.filter((todo) => todo._id !== id));
+      await axios.delete(`${API_URL}/${id}`);
+      setTodos(todos.filter((t) => t._id !== id));
     } catch (error) {
       console.error("Error deleting todo:", error);
     }
@@ -78,14 +74,7 @@ export default function App() {
           To-Do Planner
         </h1>
 
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "10px",
-            marginBottom: "20px",
-          }}
-        >
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           <input
             type="text"
             placeholder="Enter task title..."
@@ -95,10 +84,9 @@ export default function App() {
               padding: "12px",
               border: "2px solid #ba68c8",
               borderRadius: "8px",
-              outline: "none",
+              background: "#faf5ff",
               fontSize: "1rem",
               color: "#4a148c",
-              background: "#faf5ff",
             }}
           />
           <input
@@ -110,10 +98,9 @@ export default function App() {
               padding: "12px",
               border: "2px solid #ba68c8",
               borderRadius: "8px",
-              outline: "none",
+              background: "#faf5ff",
               fontSize: "1rem",
               color: "#4a148c",
-              background: "#faf5ff",
             }}
           />
           <button
@@ -127,26 +114,25 @@ export default function App() {
               borderRadius: "10px",
               cursor: "pointer",
               fontWeight: "bold",
-              transition: "0.3s",
             }}
           >
             ➕ Add Task
           </button>
         </div>
 
-        {todos.length === 0 ? (
-          <p
-            style={{
-              textAlign: "center",
-              color: "#777",
-              fontStyle: "italic",
-            }}
-          >
-            No tasks yet...
-          </p>
-        ) : (
-          <ul style={{ listStyle: "none", padding: 0 }}>
-            {todos.map((todo, index) => (
+        <ul style={{ listStyle: "none", padding: 0, marginTop: "20px" }}>
+          {todos.length === 0 ? (
+            <p
+              style={{
+                textAlign: "center",
+                color: "#777",
+                fontStyle: "italic",
+              }}
+            >
+              No tasks yet...
+            </p>
+          ) : (
+            todos.map((todo, index) => (
               <li
                 key={todo._id}
                 style={{
@@ -158,16 +144,11 @@ export default function App() {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
+                  boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
                 }}
               >
                 <div>
-                  <strong
-                    style={{
-                      color: "#6a1b9a",
-                      display: "block",
-                    }}
-                  >
+                  <strong style={{ color: "#6a1b9a", display: "block" }}>
                     {index + 1}. {todo.title}
                   </strong>
                   <span style={{ color: "#8e24aa", fontSize: "0.9rem" }}>
@@ -189,9 +170,9 @@ export default function App() {
                   ✖
                 </button>
               </li>
-            ))}
-          </ul>
-        )}
+            ))
+          )}
+        </ul>
       </div>
     </div>
   );

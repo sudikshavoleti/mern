@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-const API_URL = "https://mern-m28a.onrender.com"; 
+const API_URL = "https://mern-m28a.onrender.com/todos"; 
 // ⬆️ Replace this with your real Render backend URL
 
 export default function App() {

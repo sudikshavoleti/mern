@@ -17,12 +17,12 @@ export default function App() {
   }, []);
 
   const addTodo = async () => {
-    if (!title.trim() || !description.trim()) {
-      alert("Please enter both title and description");
+    if (!title.trim() ) {
+      alert("Please enter  title ");
       return;
     }
     try {
-      const res = await axios.post(API_URL, { title, description });
+      const res = await axios.post(API_URL, { title });
       setTodos([...todos, res.data]);
       setTitle("");
       setDescription("");
@@ -80,20 +80,6 @@ export default function App() {
             placeholder="Enter task title..."
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            style={{
-              padding: "12px",
-              border: "2px solid #ba68c8",
-              borderRadius: "8px",
-              background: "#faf5ff",
-              fontSize: "1rem",
-              color: "#4a148c",
-            }}
-          />
-          <input
-            type="text"
-            placeholder="Enter task description..."
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
             style={{
               padding: "12px",
               border: "2px solid #ba68c8",
